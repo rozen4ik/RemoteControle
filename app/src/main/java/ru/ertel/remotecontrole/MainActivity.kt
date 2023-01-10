@@ -12,7 +12,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         imageView = findViewById(R.id.imageView)
         imageView.setImageResource(R.drawable.shlakclose)
 
