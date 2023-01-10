@@ -1,8 +1,11 @@
 package ru.ertel.remotecontrole
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.ImageView
 
 class MainActivity : AppCompatActivity() {
@@ -34,5 +37,28 @@ class MainActivity : AppCompatActivity() {
                 }, 300)
             }
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_about -> {
+                val intent = Intent(this@MainActivity, AboutActivity::class.java)
+                startActivity(intent)
+                finish()
+                return true
+            }
+            R.id.action_settings -> {
+                val intent = Intent(this@MainActivity, SettingsActivity::class.java)
+                startActivity(intent)
+                finish()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
