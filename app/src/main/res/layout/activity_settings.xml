@@ -9,6 +9,7 @@
     tools:context=".SettingsActivity">
 
     <TextView
+        android:id="@+id/textDateLicense"
         android:layout_marginTop="25dp"
         android:text="Обновить лицензию:"
         android:layout_width="match_parent"
@@ -28,6 +29,7 @@
 
 
     <TextView
+        android:id="@+id/textIdent"
         android:text="Ввести другой идентификатор клиента:"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
