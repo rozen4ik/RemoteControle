@@ -16,12 +16,12 @@
         android:layout_height="wrap_content" />
 
     <EditText
-        android:id="@+id/edit_license"
+        android:id="@+id/editLicense"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <Button
-        android:id="@+id/save_license"
+        android:id="@+id/saveLicense"
         android:text="Сохранить"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -35,29 +35,30 @@
         android:layout_height="wrap_content" />
 
     <EditText
-        android:id="@+id/edit_ident_client"
+        android:id="@+id/editIdentClient"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <Button
-        android:id="@+id/save_ident_client"
+        android:id="@+id/saveIdentClient"
         android:text="Сохранить"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="25dp"/>
 
     <TextView
+        android:id="@+id/textIdentDevice"
         android:text="Ввести идентификатор устройства:"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <EditText
-        android:id="@+id/edit_ident_device"
+        android:id="@+id/editIdentDevice"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <Button
-        android:id="@+id/save_ident_device"
+        android:id="@+id/saveIdentDevice"
         android:text="Сохранить"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />

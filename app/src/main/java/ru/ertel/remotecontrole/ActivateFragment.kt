@@ -27,6 +27,7 @@ class ActivateFragment : Fragment() {
     private lateinit var buttonToken: Button
     private lateinit var settings: SharedPreferences
     private lateinit var daySet: SharedPreferences
+    private lateinit var endDate: SharedPreferences
     private lateinit var identSet: SharedPreferences
     private lateinit var urlToken: String
     private lateinit var dataSourceToken: DataSourceToken
@@ -63,6 +64,8 @@ class ActivateFragment : Fragment() {
                     requireActivity().getSharedPreferences("endDate", AppCompatActivity.MODE_PRIVATE)
                 identSet =
                     requireActivity().getSharedPreferences("ident", AppCompatActivity.MODE_PRIVATE)
+                endDate =
+                    requireActivity().getSharedPreferences("date", AppCompatActivity.MODE_PRIVATE)
 
                 val formDate = SimpleDateFormat("yyyy-MM-dd")
                 val getEndDayOfYear = SimpleDateFormat("D")
@@ -90,6 +93,10 @@ class ActivateFragment : Fragment() {
                     saveIdent.putString(SAVE_TOKEN, editTextIdent.text.toString())
                     saveIdent.commit()
 
+                    val saveEndDate: SharedPreferences.Editor = endDate.edit()
+                    saveEndDate.putString(SAVE_TOKEN, dataSourceToken.getToken().endDate)
+                    saveEndDate.commit()
+
                     val intent = Intent(activity, MainActivity::class.java)
                     startActivity(intent)
                     activity?.finish()
@@ -107,6 +114,10 @@ class ActivateFragment : Fragment() {
                         val saveIdent: SharedPreferences.Editor = identSet.edit()
                         saveIdent.putString(SAVE_TOKEN, editTextIdent.text.toString())
                         saveIdent.commit()
+
+                        val saveEndDate: SharedPreferences.Editor = endDate.edit()
+                        saveEndDate.putString(SAVE_TOKEN, dataSourceToken.getToken().endDate)
+                        saveEndDate.commit()
 
                         val intent = Intent(activity, MainActivity::class.java)
                         startActivity(intent)

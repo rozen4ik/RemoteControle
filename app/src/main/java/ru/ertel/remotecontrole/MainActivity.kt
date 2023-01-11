@@ -1,9 +1,10 @@
 package ru.ertel.remotecontrole
 
+import android.content.Context
 import android.content.Intent
+import android.media.MediaPlayer
+import android.os.*
 import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import android.os.Handler
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageView
@@ -19,6 +20,7 @@ class MainActivity : AppCompatActivity() {
         imageView.setImageResource(R.drawable.shlakclose)
 
         imageView.setOnClickListener {
+            vibroFone()
             if (imageView.tag == "close") {
                 imageView.tag = "open"
                 Handler().postDelayed(Runnable {
@@ -60,5 +62,25 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private fun vibroFone() {
+        val vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        val canVibrate: Boolean = vibrator.hasVibrator()
+        val milliseconds = 300L
+        if (canVibrate) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // API 26
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                        milliseconds,
+                        VibrationEffect.DEFAULT_AMPLITUDE
+                    )
+                )
+            } else {
+                // This method was deprecated in API level 26
+                vibrator.vibrate(milliseconds)
+            }
+        }
     }
 }

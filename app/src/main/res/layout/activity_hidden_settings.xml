@@ -9,10 +9,17 @@
     tools:context=".HiddenSettingsActivity">
 
     <CheckBox
-        android:id="@+id/superuser_check"
+        android:id="@+id/adminCheck"
         android:layout_marginTop="25dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Включить режим администратора" />
+
+    <TextView
+        android:id="@+id/statusAdmin"
+        android:text="Режим администратора не активирован"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
 </LinearLayout>
