@@ -40,13 +40,13 @@ class HiddenSettingsActivity : AppCompatActivity() {
         adminCheck.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
                 val saveAdmin: SharedPreferences.Editor = settingsAdmin.edit()
-                saveAdmin.putString(StartActivity.SAVE_TOKEN, onAdmin)
+                saveAdmin.putString(SAVE_TOKEN, onAdmin)
                 saveAdmin.commit()
 
                 statusAdmin.text = onAdmin
             } else {
                 val saveAdmin: SharedPreferences.Editor = settingsAdmin.edit()
-                saveAdmin.putString(StartActivity.SAVE_TOKEN, noAdmin)
+                saveAdmin.putString(SAVE_TOKEN, noAdmin)
                 saveAdmin.commit()
 
                 statusAdmin.text = noAdmin

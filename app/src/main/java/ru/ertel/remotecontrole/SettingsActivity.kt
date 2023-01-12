@@ -31,6 +31,10 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var textIdentDevice: TextView
     private lateinit var editIdentDevice: EditText
     private lateinit var saveIdentDevice: Button
+    private lateinit var showURL: TextView
+    private lateinit var editURLBody: EditText
+    private lateinit var editURLPort: EditText
+    private lateinit var buttonSaveIpPort: Button
     private lateinit var dataSourceToken: DataSourceToken
     private lateinit var konturController: KonturController
 
@@ -47,6 +51,10 @@ class SettingsActivity : AppCompatActivity() {
         textIdentDevice = findViewById(R.id.textIdentDevice)
         editIdentDevice = findViewById(R.id.editIdentDevice)
         saveIdentDevice = findViewById(R.id.saveIdentDevice)
+        showURL = findViewById(R.id.showURL)
+        editURLBody = findViewById(R.id.editURLBody)
+        editURLPort = findViewById(R.id.editURLPort)
+        buttonSaveIpPort = findViewById(R.id.buttonSaveIpPort)
 
         dataSourceToken = DataSourceToken()
         konturController = KonturController()
@@ -56,13 +64,17 @@ class SettingsActivity : AppCompatActivity() {
         val settingsDate: SharedPreferences = getSharedPreferences("endDate", MODE_PRIVATE)
         val settingsIdent: SharedPreferences = getSharedPreferences("ident", MODE_PRIVATE)
         val settingsIdentDevice: SharedPreferences = getSharedPreferences("identDevice", MODE_PRIVATE)
+        val settingsURL: SharedPreferences = getSharedPreferences("url", MODE_PRIVATE)
+
         val bodyDate = endDate.getString(SAVE_TOKEN, "no").toString()
         val bodyIdent = settingsIdent.getString(SAVE_TOKEN, "no").toString()
         val bodyIdentDevice = settingsIdentDevice.getString(SAVE_TOKEN, "no").toString()
+        val bodyURL = settingsURL.getString(SAVE_TOKEN, "no").toString()
 
         textDateLicense.text = "Лицензия действует до $bodyDate\nОбновить лицензию:"
         textIdent.text = "Идентификатор клиента $bodyIdent\nВвести другой идентификатор клиента:"
         textIdentDevice.text = "Идентификатор устройства $bodyIdentDevice\nВвести идентификатор устройства:"
+        showURL.text = "Используется адрес: http://$bodyURL"
 
         saveLicense.setOnClickListener {
             val urlToken =
@@ -119,6 +131,16 @@ class SettingsActivity : AppCompatActivity() {
             val upIdentDevice: SharedPreferences = getSharedPreferences("identDevice", MODE_PRIVATE)
             val upBodyIdentDevice = upIdentDevice.getString(SAVE_TOKEN, "no").toString()
             textIdentDevice.text = "Идентификатор устройства $upBodyIdentDevice\nВвести идентификатор устройства:"
+        }
+
+        buttonSaveIpPort.setOnClickListener {
+            val saveURL: SharedPreferences.Editor = settingsURL.edit()
+            saveURL.putString(SAVE_TOKEN, "${editURLBody.text}:${editURLPort.text}")
+            saveURL.commit()
+
+            val upURL: SharedPreferences = getSharedPreferences("url", MODE_PRIVATE)
+            val upBodyURL = upURL.getString(SAVE_TOKEN, "no").toString()
+            showURL.text = "Используется адрес: http://$upBodyURL"
         }
     }
 
