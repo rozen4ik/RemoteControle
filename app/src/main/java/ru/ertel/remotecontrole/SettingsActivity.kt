@@ -168,13 +168,6 @@ class SettingsActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item);
     }
 
-    private fun openFragment(fragment: Fragment) {
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.placeDateFragments, fragment)
-            .commit()
-    }
-
     private fun infoToken(
         konturController: KonturController,
         dataSourceToken: DataSourceToken,
