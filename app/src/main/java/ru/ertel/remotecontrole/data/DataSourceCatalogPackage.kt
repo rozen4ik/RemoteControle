@@ -1,6 +1,7 @@
 package ru.ertel.remotecontrole.data
 
 import android.util.Log
+import android.widget.Toast
 import ru.ertel.remotecontrole.model.CatalogPackage
 
 class DataSourceCatalogPackage {
@@ -11,7 +12,8 @@ class DataSourceCatalogPackage {
         "",
         "",
         "",
-        ""
+        "",
+        "1"
     )
 
     private lateinit var numberTokenKontur: String
@@ -48,10 +50,25 @@ class DataSourceCatalogPackage {
 //        }
     }
 
+    fun getAnswerDevice(): String {
+        return catalogPackage.state
+    }
+
+    fun setState(state: String) {
+        catalogPackage.state = state
+    }
+
     fun setAnswerDevice(message: String) {
 //        numberTokenKontur = numberKontur.substringAfterLast("*")
 //        if (getAnswerLicense(message)) {
-        Log.d("TAG", message)
+        Log.d("TAG", "Message\n$message")
+        if (message.contains("text=\"Ошибка [Устройство не ожидает ответа на запрос]\"")) {
+            Log.d("TAG", "Попытка двойного прохода")
+            catalogPackage.state += "*Попытка двойного прохода"
+        } else {
+            Log.d("TAG", "Можете проходить")
+            catalogPackage.state += "*Можете проходить"
+        }
             if (getValidMessageAnswer(message)) {
                 catalogPackage.deviceName = getDeviceName(message)
                 catalogPackage.datePasses = getDatePasses(message)

@@ -7,5 +7,6 @@ data class CatalogPackage(
     var capt: String,
     var numberOfPasses: String,
     var datePasses: String,
-    var passageBalance: String
+    var passageBalance: String,
+    var state: String
 )
