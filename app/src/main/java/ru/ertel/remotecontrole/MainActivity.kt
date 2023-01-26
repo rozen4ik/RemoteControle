@@ -223,27 +223,27 @@ class MainActivity : AppCompatActivity() {
                     var answerKontur = konturController.requestPOST(urlPassage, answerDevice)
                     Log.d("TAG", "Answer\n$answerKontur")
                     Log.d("TAG", "MessageUnBlockDevice\n${konturController.requestPOST(urlPassage, messageUnBlockDevice)}")
-                    if (answerKontur.contains("text=\"Ошибка [Устройство не ожидает ответа на запрос]\"")) {
-                        msgPassageCard = updateMsgPassageCard(msgPassageCard)
-                        Log.d("TAG", "MessageBlockDevice\n${konturController.requestPOST(urlPassage, messageBlockDevice)}")
-                        msg = konturController.requestPOST(urlPassage, msgPassageCard)
-                        Log.d("TAG", "MessagePassageCard\n$msg")
-                        dataSourceCatalogPackage.setMessagePassageCard(msg)
-                        msg = msg.substringAfter("<Message>")
-                        msg = msg.substringBefore("</Message>")
-                        msg = msg.replace("rPrior", "rFinal")
-                        msg = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
-                                "<script>" +
-                                "<Message>$msg</Message>" +
-                                "</script>"
-                        Log.d("TAG", "MSGEdit\n$msg")
-                        Log.d("TAG", konturController.requestPOST(urlPassage, msg))
-                        answerKontur = konturController.requestPOST(urlPassage, answerDevice)
-                        Log.d("TAG", "Answer\n$answerKontur")
-                        Log.d("TAG", "MessageUnBlockDevice\n${konturController.requestPOST(urlPassage, messageUnBlockDevice)}")
-                    } else {
-                        msgPassageCard = updateMsgPassageCard(msgPassageCard)
-                    }
+//                    if (answerKontur.contains("text=\"Ошибка [Устройство не ожидает ответа на запрос]\"")) {
+//                        msgPassageCard = updateMsgPassageCard(msgPassageCard)
+//                        Log.d("TAG", "MessageBlockDevice\n${konturController.requestPOST(urlPassage, messageBlockDevice)}")
+//                        msg = konturController.requestPOST(urlPassage, msgPassageCard)
+//                        Log.d("TAG", "MessagePassageCard\n$msg")
+//                        dataSourceCatalogPackage.setMessagePassageCard(msg)
+//                        msg = msg.substringAfter("<Message>")
+//                        msg = msg.substringBefore("</Message>")
+//                        msg = msg.replace("rPrior", "rFinal")
+//                        msg = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
+//                                "<script>" +
+//                                "<Message>$msg</Message>" +
+//                                "</script>"
+//                        Log.d("TAG", "MSGEdit\n$msg")
+//                        Log.d("TAG", konturController.requestPOST(urlPassage, msg))
+//                        answerKontur = konturController.requestPOST(urlPassage, answerDevice)
+//                        Log.d("TAG", "Answer\n$answerKontur")
+//                        Log.d("TAG", "MessageUnBlockDevice\n${konturController.requestPOST(urlPassage, messageUnBlockDevice)}")
+//                    } else {
+//                        msgPassageCard = updateMsgPassageCard(msgPassageCard)
+//                    }
 //                    dataSourceCatalogPackage.setInfoCard(
 //                        konturController.requestPOST(
 //                            url,
