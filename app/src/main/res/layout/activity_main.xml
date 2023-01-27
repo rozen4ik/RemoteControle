@@ -8,17 +8,26 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="411dp"
+        android:layout_height="639dp"
         android:layout_marginStart="5dp"
-        android:layout_marginTop="5dp"
         android:layout_marginEnd="5dp"
         android:layout_marginBottom="5dp"
+        android:tag="close"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:tag="close"/>
-<!--        app:srcCompat="@drawable/shlakclose" -->
+        app:srcCompat="@drawable/shlakclose" />
+
+    <CheckBox
+        android:id="@+id/statusCheck"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="25dp"
+        android:text="Въезд"
+        app:layout_constraintBottom_toTopOf="@+id/imageView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

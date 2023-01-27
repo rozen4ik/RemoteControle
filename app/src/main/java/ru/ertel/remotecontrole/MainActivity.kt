@@ -3,14 +3,12 @@ package ru.ertel.remotecontrole
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.media.MediaPlayer
 import android.os.*
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.ImageView
-import android.widget.Toast
+import android.widget.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.runBlocking
@@ -21,6 +19,8 @@ import ru.ertel.remotecontrole.data.DataSourceCatalogPackage
 class MainActivity : AppCompatActivity() {
 
     private lateinit var imageView: ImageView
+    private lateinit var statusCheck: CheckBox
+    private var status = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,18 +29,87 @@ class MainActivity : AppCompatActivity() {
         imageView = findViewById(R.id.imageView)
         imageView.setImageResource(R.drawable.shlakclose)
 
+        statusCheck = findViewById(R.id.statusCheck)
+
+        val settingsStatus: SharedPreferences = getSharedPreferences("status", MODE_PRIVATE)
+        val bodyStatus = settingsStatus.getString(SAVE_TOKEN, "no").toString()
+
         val settingsIdent: SharedPreferences = getSharedPreferences("ident", MODE_PRIVATE)
         val identClient = settingsIdent.getString(SAVE_TOKEN, "no").toString()
 
-        val settingsIdentDevice: SharedPreferences = getSharedPreferences("identDevice", MODE_PRIVATE)
+        val settingsIdentDevice: SharedPreferences =
+            getSharedPreferences("identDevice", MODE_PRIVATE)
         val identDevice = settingsIdentDevice.getString(SAVE_TOKEN, "no").toString()
 
         val settingsURL: SharedPreferences = getSharedPreferences("url", MODE_PRIVATE)
-        val urlKontur = "http://${settingsURL.getString(SAVE_TOKEN, "no").toString()}/monitor?script=True"
+        val urlKontur =
+            "http://${settingsURL.getString(SAVE_TOKEN, "no").toString()}/monitor?script=True"
         val url = "http://${settingsURL.getString(SAVE_TOKEN, "no").toString()}/spd-xml-api"
 
         val konturController = KonturController()
         val dataSourceCatalogPackage = DataSourceCatalogPackage()
+
+        val onStatus = "Въезд на территорию"
+        val noStatus = "Выезд с территории"
+        var messagePassageCard = ""
+        var cpDirection: Int = 1
+
+        when (bodyStatus) {
+            noStatus -> {
+                statusCheck.isChecked = true
+                statusCheck.text = noStatus
+                cpDirection = 2
+                messagePassageCard = messagePassageCard.replace(
+                    "<param name=\"cpDirection\">1</param>",
+                    "<param name=\"cpDirection\">2</param>"
+                )
+            }
+            "no" -> {
+                statusCheck.isChecked = false
+                statusCheck.text = onStatus
+                cpDirection = 1
+                messagePassageCard = messagePassageCard.replace(
+                    "<param name=\"cpDirection\">2</param>",
+                    "<param name=\"cpDirection\">1</param>"
+                )
+                val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
+                saveStatus.putString(SAVE_TOKEN, onStatus)
+                saveStatus.commit()
+            }
+            else -> {
+                statusCheck.isChecked = false
+                statusCheck.text = onStatus
+                cpDirection = 1
+                messagePassageCard = messagePassageCard.replace(
+                    "<param name=\"cpDirection\">2</param>",
+                    "<param name=\"cpDirection\">1</param>"
+                )
+            }
+        }
+
+        statusCheck.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isChecked) {
+                val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
+                saveStatus.putString(SAVE_TOKEN, noStatus)
+                saveStatus.commit()
+                cpDirection = 2
+                messagePassageCard = messagePassageCard.replace(
+                    "<param name=\"cpDirection\">1</param>",
+                    "<param name=\"cpDirection\">2</param>"
+                )
+                statusCheck.text = noStatus
+            } else {
+                val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
+                saveStatus.putString(SAVE_TOKEN, onStatus)
+                saveStatus.commit()
+                cpDirection = 1
+                messagePassageCard = messagePassageCard.replace(
+                    "<param name=\"cpDirection\">2</param>",
+                    "<param name=\"cpDirection\">1</param>"
+                )
+                statusCheck.text = onStatus
+            }
+        }
 
         val messageBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
                 "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
@@ -51,12 +120,12 @@ class MainActivity : AppCompatActivity() {
                 "</command> " +
                 "</script>"
         // 1 - Вход, 2 - выход для cpDirection
-        var messagePassageCard = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
+        messagePassageCard = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
                 "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
                 "<command name=\"cRequest\" device=\"$identDevice\" guid=\"44871464-8EBD-56E6-A085-4E654768B8D6\"> " +
                 "<param name=\"cpCard\">$identClient</param> " +
                 "<param name=\"cpCardType\">1</param> " +
-                "<param name=\"cpDirection\">1</param> " +
+                "<param name=\"cpDirection\">$cpDirection</param> " +
                 "<param name=\"cpText\">Запрос по карте</param> " +
                 "</command> " +
                 "</script>"
@@ -75,61 +144,29 @@ class MainActivity : AppCompatActivity() {
 
         imageView.setOnClickListener {
             vibroFone()
-            if (imageView.tag == "close") {
-                imageView.tag = "open"
-                Handler().postDelayed(Runnable {
-                    imageView.setImageResource(R.drawable.shlakmiddle)
-                    updatePassageCard(
-                        konturController,
-                        dataSourceCatalogPackage,
-                        urlKontur,
-                        url,
-                        messageBlockDevice,
-                        messagePassageCard,
-                        answerDevice,
-                        messageUnBlockDevice
+            imageView.tag = "open"
+            Handler().postDelayed(Runnable {
+                imageView.setImageResource(R.drawable.shlakmiddle)
+                updatePassageCard(
+                    konturController,
+                    dataSourceCatalogPackage,
+                    urlKontur,
+                    url,
+                    messageBlockDevice,
+                    messagePassageCard,
+                    answerDevice,
+                    messageUnBlockDevice
 //                        numberKontur,
-                    )
-//                    if (dataSourceCatalogPackage.getPassageCard().solution == "Пиратская копия") {
-//                        val intent = Intent(this@MainActivity, LicenseActivity::class.java)
-//                        startActivity(intent)
-//                        finish()
-//                    } else {
-//                        bundle.putString(
-//                            "deviceName",
-//                            dataSourceCatalogPackage.getPassageCard().deviceName
-//                        )
-//                        bundle.putString("requestPassage", resultScanInfoCard)
-//                        bundle.putString("solution", dataSourceCatalogPackage.getPassageCard().solution)
-//                        bundle.putString("capt", dataSourceCatalogPackage.getPassageCard().capt)
-//                        bundle.putString(
-//                            "numberOfPasses",
-//                            dataSourceCatalogPackage.getPassageCard().numberOfPasses
-//                        )
-//                        bundle.putString(
-//                            "datePasses",
-//                            dataSourceCatalogPackage.getPassageCard().datePasses
-//                        )
-//                        bundle.putString(
-//                            "passageBalance",
-//                            dataSourceCatalogPackage.getPassageCard().passageBalance
-//                        )
-//                        passageCardFragment.arguments = bundle
-//                        openFragment(passageCardFragment)
-//                    }
-                    Handler().postDelayed(Runnable {
-                        imageView.setImageResource(R.drawable.shlakopen)
-                    }, 300)
-                }, 300)
-            } else {
-                imageView.tag = "close"
+                )
                 Handler().postDelayed(Runnable {
-                    imageView.setImageResource(R.drawable.shlakmiddle)
+                    imageView.setImageResource(R.drawable.shlakopen)
+                    Toast.makeText(this, status, Toast.LENGTH_LONG).show()
+                    imageView.tag = "close"
                     Handler().postDelayed(Runnable {
                         imageView.setImageResource(R.drawable.shlakclose)
-                    }, 300)
+                    }, 1500)
                 }, 300)
-            }
+            }, 300)
         }
     }
 
@@ -184,8 +221,10 @@ class MainActivity : AppCompatActivity() {
                 "<param name=\"cpDirection\">2</param>"
             )
         } else {
-            message.replace("<param name=\"cpDirection\">2</param>",
-                "<param name=\"cpDirection\">1</param>")
+            message.replace(
+                "<param name=\"cpDirection\">2</param>",
+                "<param name=\"cpDirection\">1</param>"
+            )
         }
         return message
     }
@@ -206,7 +245,15 @@ class MainActivity : AppCompatActivity() {
         runBlocking {
             launch(newSingleThreadContext("MyOwnThread")) {
                 try {
-                    Log.d("TAG", "MessageBlockDevice\n${konturController.requestPOST(urlPassage, messageBlockDevice)}")
+                    Log.d(
+                        "TAG",
+                        "MessageBlockDevice\n${
+                            konturController.requestPOST(
+                                urlPassage,
+                                messageBlockDevice
+                            )
+                        }"
+                    )
                     var msgPassageCard = messagePassageCard
                     var msg = konturController.requestPOST(urlPassage, msgPassageCard)
                     Log.d("TAG", "MessagePassageCard\n$msg")
@@ -219,38 +266,23 @@ class MainActivity : AppCompatActivity() {
                             "<Message>$msg</Message>" +
                             "</script>"
                     Log.d("TAG", "MSGEdit\n$msg")
+                    if (msg.contains("rGrant")) {
+                        status = "Проход разрешён"
+                    } else {
+                        status = "Проход запрещён"
+                    }
                     Log.d("TAG", konturController.requestPOST(urlPassage, msg))
                     var answerKontur = konturController.requestPOST(urlPassage, answerDevice)
                     Log.d("TAG", "Answer\n$answerKontur")
-                    Log.d("TAG", "MessageUnBlockDevice\n${konturController.requestPOST(urlPassage, messageUnBlockDevice)}")
-//                    if (answerKontur.contains("text=\"Ошибка [Устройство не ожидает ответа на запрос]\"")) {
-//                        msgPassageCard = updateMsgPassageCard(msgPassageCard)
-//                        Log.d("TAG", "MessageBlockDevice\n${konturController.requestPOST(urlPassage, messageBlockDevice)}")
-//                        msg = konturController.requestPOST(urlPassage, msgPassageCard)
-//                        Log.d("TAG", "MessagePassageCard\n$msg")
-//                        dataSourceCatalogPackage.setMessagePassageCard(msg)
-//                        msg = msg.substringAfter("<Message>")
-//                        msg = msg.substringBefore("</Message>")
-//                        msg = msg.replace("rPrior", "rFinal")
-//                        msg = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
-//                                "<script>" +
-//                                "<Message>$msg</Message>" +
-//                                "</script>"
-//                        Log.d("TAG", "MSGEdit\n$msg")
-//                        Log.d("TAG", konturController.requestPOST(urlPassage, msg))
-//                        answerKontur = konturController.requestPOST(urlPassage, answerDevice)
-//                        Log.d("TAG", "Answer\n$answerKontur")
-//                        Log.d("TAG", "MessageUnBlockDevice\n${konturController.requestPOST(urlPassage, messageUnBlockDevice)}")
-//                    } else {
-//                        msgPassageCard = updateMsgPassageCard(msgPassageCard)
-//                    }
-//                    dataSourceCatalogPackage.setInfoCard(
-//                        konturController.requestPOST(
-//                            url,
-//                            messageInfoCard
-//                        )
-//                        numberKontur
-//                    )
+                    Log.d(
+                        "TAG",
+                        "MessageUnBlockDevice\n${
+                            konturController.requestPOST(
+                                urlPassage,
+                                messageUnBlockDevice
+                            )
+                        }"
+                    )
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
