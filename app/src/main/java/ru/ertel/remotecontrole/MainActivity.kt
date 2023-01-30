@@ -14,13 +14,14 @@ import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.runBlocking
 import ru.ertel.remotecontrole.StartActivity.Companion.SAVE_TOKEN
 import ru.ertel.remotecontrole.controller.KonturController
-import ru.ertel.remotecontrole.data.DataSourceCatalogPackage
+import ru.ertel.remotecontrole.data.DataSourceLicense
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var imageView: ImageView
     private lateinit var statusCheck: CheckBox
     private var status = ""
+    private var answerCheckMessage = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,8 +47,11 @@ class MainActivity : AppCompatActivity() {
             "http://${settingsURL.getString(SAVE_TOKEN, "no").toString()}/monitor?script=True"
         val url = "http://${settingsURL.getString(SAVE_TOKEN, "no").toString()}/spd-xml-api"
 
+        val settingsToken: SharedPreferences = getSharedPreferences("konturToken", MODE_PRIVATE)
+        val bodyToken = settingsToken.getString(SAVE_TOKEN, "no").toString()
+
         val konturController = KonturController()
-        val dataSourceCatalogPackage = DataSourceCatalogPackage()
+        val dataSourceLicense = DataSourceLicense()
 
         val onStatus = "Въезд на территорию"
         val noStatus = "Выезд с территории"
@@ -111,6 +115,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        val checkMessage = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?>" +
+                "<spd-xml-api>" +
+                "<request version=\"1.1\" ruid=\"739F9F2B-AEDD-4D94-90FF-EB59A9A1FCF5\">" +
+                "</request>" +
+                "</spd-xml-api>"
+
         val messageBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
                 "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
                 "<command name=\"cLockDevice\" device=\"$identDevice\" guid=\"95D454F3-8EBD-50E6-A085-4E644468B8D6\"> " +
@@ -119,6 +129,7 @@ class MainActivity : AppCompatActivity() {
                 "<param name=\"cpSession\">85D323F3-8EBD-48E6-A085-4E652468B8D6</param> " +
                 "</command> " +
                 "</script>"
+
         // 1 - Вход, 2 - выход для cpDirection
         messagePassageCard = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
                 "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
@@ -129,6 +140,7 @@ class MainActivity : AppCompatActivity() {
                 "<param name=\"cpText\">Запрос по карте</param> " +
                 "</command> " +
                 "</script>"
+
         val messageUnBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
                 "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
                 "<command name=\"cUnlockDevice\" device=\"$identDevice\" guid=\"98545167-8EBD-6578-A085-4E633368B8D6\"> " +
@@ -137,6 +149,7 @@ class MainActivity : AppCompatActivity() {
                 "<param name=\"cpSession\">85D323F3-8EBD-48E6-A085-4E652468B8D6</param> " +
                 "</command> " +
                 "</script>"
+
         val answerDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
                 "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
                 "<wait delay=\"20000\" device=\"$identDevice\"/> " +
@@ -147,25 +160,38 @@ class MainActivity : AppCompatActivity() {
             imageView.tag = "open"
             Handler().postDelayed(Runnable {
                 imageView.setImageResource(R.drawable.shlakmiddle)
-                updatePassageCard(
-                    konturController,
-                    dataSourceCatalogPackage,
-                    urlKontur,
-                    url,
-                    messageBlockDevice,
-                    messagePassageCard,
-                    answerDevice,
-                    messageUnBlockDevice
-//                        numberKontur,
-                )
-                Handler().postDelayed(Runnable {
-                    imageView.setImageResource(R.drawable.shlakopen)
-                    Toast.makeText(this, status, Toast.LENGTH_LONG).show()
-                    imageView.tag = "close"
-                    Handler().postDelayed(Runnable {
-                        imageView.setImageResource(R.drawable.shlakclose)
-                    }, 1500)
-                }, 300)
+                checkLicense(konturController, dataSourceLicense, url, bodyToken, checkMessage)
+                if (dataSourceLicense.getSolution() == "Пиратская копия") {
+                    val intent = Intent(this@MainActivity, LicenseActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                } else {
+                    updatePassageCard(
+                        konturController,
+                        urlKontur,
+                        messageBlockDevice,
+                        messagePassageCard,
+                        answerDevice,
+                        messageUnBlockDevice,
+                    )
+                    if (status == "Проход разрешён") {
+                        Handler().postDelayed(Runnable {
+                            imageView.setImageResource(R.drawable.shlakopen)
+                            Toast.makeText(this, status, Toast.LENGTH_LONG).show()
+                            imageView.tag = "close"
+                            Handler().postDelayed(Runnable {
+                                imageView.setImageResource(R.drawable.shlakclose)
+                            }, 1500)
+
+                        }, 600)
+                    } else {
+                        Toast.makeText(this, status, Toast.LENGTH_LONG).show()
+                        imageView.tag = "close"
+                        Handler().postDelayed(Runnable {
+                            imageView.setImageResource(R.drawable.shlakclose)
+                        }, 300)
+                    }
+                }
             }, 300)
         }
     }
@@ -229,22 +255,38 @@ class MainActivity : AppCompatActivity() {
         return message
     }
 
+    private fun checkLicense(
+        konturController: KonturController,
+        dataSourceLicense: DataSourceLicense,
+        url: String,
+        bodyToken: String,
+        checkMessage: String
+    ) {
+        runBlocking {
+            launch(newSingleThreadContext("CheclLicense")) {
+                try {
+                    answerCheckMessage = konturController.requestPOST(url, checkMessage)
+                    Log.d("TAG", answerCheckMessage)
+                    dataSourceLicense.setMessageLicense(answerCheckMessage, bodyToken)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
     private fun updatePassageCard(
         konturController: KonturController,
-        dataSourceCatalogPackage: DataSourceCatalogPackage,
         urlPassage: String,
-        url: String,
         messageBlockDevice: String,
         messagePassageCard: String,
         answerDevice: String,
         messageUnBlockDevice: String
-//        messageInfoCard: String
-//        numberKontur: String
-
     ) {
         runBlocking {
             launch(newSingleThreadContext("MyOwnThread")) {
                 try {
+
                     Log.d(
                         "TAG",
                         "MessageBlockDevice\n${
@@ -257,7 +299,6 @@ class MainActivity : AppCompatActivity() {
                     var msgPassageCard = messagePassageCard
                     var msg = konturController.requestPOST(urlPassage, msgPassageCard)
                     Log.d("TAG", "MessagePassageCard\n$msg")
-                    dataSourceCatalogPackage.setMessagePassageCard(msg)
                     msg = msg.substringAfter("<Message>")
                     msg = msg.substringBefore("</Message>")
                     msg = msg.replace("rPrior", "rFinal")
@@ -266,13 +307,13 @@ class MainActivity : AppCompatActivity() {
                             "<Message>$msg</Message>" +
                             "</script>"
                     Log.d("TAG", "MSGEdit\n$msg")
-                    if (msg.contains("rGrant")) {
-                        status = "Проход разрешён"
+                    status = if (msg.contains("rGrant")) {
+                        "Проход разрешён"
                     } else {
-                        status = "Проход запрещён"
+                        "Проход запрещён"
                     }
                     Log.d("TAG", konturController.requestPOST(urlPassage, msg))
-                    var answerKontur = konturController.requestPOST(urlPassage, answerDevice)
+                    val answerKontur = konturController.requestPOST(urlPassage, answerDevice)
                     Log.d("TAG", "Answer\n$answerKontur")
                     Log.d(
                         "TAG",
