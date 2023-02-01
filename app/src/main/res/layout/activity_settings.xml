@@ -8,108 +8,111 @@
     tools:context=".SettingsActivity">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/textDateLicense"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-        android:layout_marginTop="25dp"
-        android:text="Обновить лицензию:"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/textDateLicense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="25dp"
+            android:text="Обновить лицензию:"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
 
-    <EditText
-        android:id="@+id/editLicense"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/editLicense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
-    <Button
-        android:id="@+id/saveLicense"
-        android:text="Сохранить"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="25dp" />
+        <Button
+            android:id="@+id/saveLicense"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="25dp"
+            android:text="Сохранить" />
 
 
-    <TextView
-        android:id="@+id/textIdent"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-        android:text="Ввести другой идентификатор клиента:"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/textIdent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ввести другой идентификатор клиента:"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
 
-    <EditText
-        android:id="@+id/editIdentClient"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/editIdentClient"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
-    <Button
-        android:id="@+id/saveIdentClient"
-        android:text="Сохранить"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="25dp"/>
+        <Button
+            android:id="@+id/saveIdentClient"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="25dp"
+            android:text="Сохранить" />
 
-    <TextView
-        android:id="@+id/textIdentDevice"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-        android:text="Ввести идентификатор устройства:"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/textIdentDevice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ввести идентификатор устройства:"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
 
-    <EditText
-        android:id="@+id/editIdentDevice"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <Spinner
+            android:id="@+id/selectDevice"
+            android:layout_marginTop="5dp"
+            android:spinnerMode="dialog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
-    <Button
-        android:id="@+id/saveIdentDevice"
-        android:text="Сохранить"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/saveIdentDevice"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Сохранить" />
 
-    <TextView
-        android:id="@+id/showURL"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="25dp"
-        android:text="Используется адрес:"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
+        <TextView
+            android:id="@+id/showURL"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="25dp"
+            android:text="Используется адрес:"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="25dp"
-        android:text="Введите ip адрес"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="25dp"
+            android:text="Введите ip адрес"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
 
-    <EditText
-        android:id="@+id/editURLBody"
-        android:hint="213.208.176.194"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/editURLBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="213.208.176.194" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="15dp"
-        android:text="Введите порт"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="15dp"
+            android:text="Введите порт"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
 
-    <EditText
-        android:id="@+id/editURLPort"
-        android:hint="55577"
-        android:paddingBottom="15dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/editURLPort"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="55577"
+            android:paddingBottom="15dp" />
 
-    <Button
-        android:id="@+id/buttonSaveIpPort"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Сохранить" />
+        <Button
+            android:id="@+id/buttonSaveIpPort"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Сохранить" />
 
     </LinearLayout>
 

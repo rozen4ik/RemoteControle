@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.*
@@ -24,11 +25,14 @@ import ru.ertel.remotecontrole.data.DataSourceToken
 class ActivateFragment : Fragment() {
     private lateinit var editTextToken: EditText
     private lateinit var editTextIdent: EditText
+    private lateinit var editTextIp: EditText
+    private lateinit var editTextPort: EditText
     private lateinit var buttonToken: Button
     private lateinit var settings: SharedPreferences
     private lateinit var daySet: SharedPreferences
     private lateinit var endDate: SharedPreferences
     private lateinit var identSet: SharedPreferences
+    private lateinit var urlIpPort: SharedPreferences
     private lateinit var urlToken: String
     private lateinit var dataSourceToken: DataSourceToken
     private lateinit var konturController: KonturController
@@ -49,64 +53,66 @@ class ActivateFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         editTextToken = view.findViewById(R.id.editTextToken)
         editTextIdent = view.findViewById(R.id.editTextIdent)
+        editTextIp = view.findViewById(R.id.editTextIp)
+        editTextPort = view.findViewById(R.id.editTextPort)
         buttonToken = view.findViewById(R.id.buttonToken)
 
         buttonToken.setOnClickListener {
-            urlToken =
-                "http://license.u1733524.isp.regruhosting.ru/api/tokens/${editTextToken.text}"
+            if (editTextToken.text.toString() == "" || editTextIdent.text.toString() == ""
+                || editTextPort.text.toString() == "" || editTextIp.text.toString() == "") {
+                Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_LONG).show()
+            } else {
+                urlToken =
+                    "http://license.u1733524.isp.regruhosting.ru/api/tokens/${editTextToken.text}"
 
-            infoToken(konturController, dataSourceToken, urlToken)
+                infoToken(konturController, dataSourceToken, urlToken)
 
-            if (dataSourceToken.getToken().nameToken == editTextToken.text.toString()) {
-                settings =
-                    requireActivity().getSharedPreferences("konturToken", AppCompatActivity.MODE_PRIVATE)
-                daySet =
-                    requireActivity().getSharedPreferences("endDate", AppCompatActivity.MODE_PRIVATE)
-                identSet =
-                    requireActivity().getSharedPreferences("ident", AppCompatActivity.MODE_PRIVATE)
-                endDate =
-                    requireActivity().getSharedPreferences("date", AppCompatActivity.MODE_PRIVATE)
+                if (dataSourceToken.getToken().nameToken == editTextToken.text.toString()) {
+                    settings =
+                        requireActivity().getSharedPreferences(
+                            "konturToken",
+                            AppCompatActivity.MODE_PRIVATE
+                        )
+                    daySet =
+                        requireActivity().getSharedPreferences(
+                            "endDate",
+                            AppCompatActivity.MODE_PRIVATE
+                        )
+                    identSet =
+                        requireActivity().getSharedPreferences(
+                            "ident",
+                            AppCompatActivity.MODE_PRIVATE
+                        )
+                    urlIpPort =
+                        requireActivity().getSharedPreferences(
+                            "url",
+                            AppCompatActivity.MODE_PRIVATE
+                        )
+                    endDate =
+                        requireActivity().getSharedPreferences(
+                            "date",
+                            AppCompatActivity.MODE_PRIVATE
+                        )
 
-                val formDate = SimpleDateFormat("yyyy-MM-dd")
-                val getEndDayOfYear = SimpleDateFormat("D")
-                val currentDate = formDate.parse(dataSourceToken.getToken().endDate)
-                val endDayOfYear = getEndDayOfYear.format(currentDate)
-                val endYear = "${dataSourceToken.getToken().endDate[0]}" +
-                        "${dataSourceToken.getToken().endDate[1]}" +
-                        "${dataSourceToken.getToken().endDate[2]}" +
-                        "${dataSourceToken.getToken().endDate[3]}"
-                val dateNow = Calendar.getInstance()
-                val dateDayOfYearNow = dateNow.get(Calendar.DAY_OF_YEAR)
-                val dateYearNow = dateNow.get(Calendar.YEAR)
+                    val formDate = SimpleDateFormat("yyyy-MM-dd")
+                    val getEndDayOfYear = SimpleDateFormat("D")
+                    val currentDate = formDate.parse(dataSourceToken.getToken().endDate)
+                    val endDayOfYear = getEndDayOfYear.format(currentDate)
+                    val endYear = "${dataSourceToken.getToken().endDate[0]}" +
+                            "${dataSourceToken.getToken().endDate[1]}" +
+                            "${dataSourceToken.getToken().endDate[2]}" +
+                            "${dataSourceToken.getToken().endDate[3]}"
+                    val dateNow = Calendar.getInstance()
+                    val dateDayOfYearNow = dateNow.get(Calendar.DAY_OF_YEAR)
+                    val dateYearNow = dateNow.get(Calendar.YEAR)
 
-                if (dateYearNow < endYear.toInt()) {
-                    val saveEndDateToken: SharedPreferences.Editor = daySet.edit()
-                    saveEndDateToken.putString(SAVE_TOKEN, "$endDayOfYear/$endYear")
-                    saveEndDateToken.commit()
-
-                    val numberKontur = dataSourceToken.getToken().nameToken.substringAfterLast("*")
-                    val saveKonturToken: SharedPreferences.Editor = settings.edit()
-                    saveKonturToken.putString(SAVE_TOKEN, numberKontur)
-                    saveKonturToken.commit()
-
-                    val saveIdent: SharedPreferences.Editor = identSet.edit()
-                    saveIdent.putString(SAVE_TOKEN, editTextIdent.text.toString())
-                    saveIdent.commit()
-
-                    val saveEndDate: SharedPreferences.Editor = endDate.edit()
-                    saveEndDate.putString(SAVE_TOKEN, dataSourceToken.getToken().endDate)
-                    saveEndDate.commit()
-
-                    val intent = Intent(activity, MainActivity::class.java)
-                    startActivity(intent)
-                    activity?.finish()
-                } else if (dateYearNow == endYear.toInt()) {
-                    if ((dateDayOfYearNow < endDayOfYear.toInt()) && (dateYearNow <= endYear.toInt())) {
+                    if (dateYearNow < endYear.toInt()) {
                         val saveEndDateToken: SharedPreferences.Editor = daySet.edit()
                         saveEndDateToken.putString(SAVE_TOKEN, "$endDayOfYear/$endYear")
                         saveEndDateToken.commit()
 
-                        val numberKontur = dataSourceToken.getToken().nameToken.substringAfterLast("*")
+                        val numberKontur =
+                            dataSourceToken.getToken().nameToken.substringAfterLast("*")
                         val saveKonturToken: SharedPreferences.Editor = settings.edit()
                         saveKonturToken.putString(SAVE_TOKEN, numberKontur)
                         saveKonturToken.commit()
@@ -115,6 +121,13 @@ class ActivateFragment : Fragment() {
                         saveIdent.putString(SAVE_TOKEN, editTextIdent.text.toString())
                         saveIdent.commit()
 
+                        val saveUrlIpPort: SharedPreferences.Editor = urlIpPort.edit()
+                        saveUrlIpPort.putString(
+                            SAVE_TOKEN,
+                            "${editTextIp.text}:${editTextPort.text}"
+                        )
+                        saveUrlIpPort.commit()
+
                         val saveEndDate: SharedPreferences.Editor = endDate.edit()
                         saveEndDate.putString(SAVE_TOKEN, dataSourceToken.getToken().endDate)
                         saveEndDate.commit()
@@ -122,16 +135,47 @@ class ActivateFragment : Fragment() {
                         val intent = Intent(activity, MainActivity::class.java)
                         startActivity(intent)
                         activity?.finish()
+                    } else if (dateYearNow == endYear.toInt()) {
+                        if ((dateDayOfYearNow < endDayOfYear.toInt()) && (dateYearNow <= endYear.toInt())) {
+                            val saveEndDateToken: SharedPreferences.Editor = daySet.edit()
+                            saveEndDateToken.putString(SAVE_TOKEN, "$endDayOfYear/$endYear")
+                            saveEndDateToken.commit()
+
+                            val numberKontur =
+                                dataSourceToken.getToken().nameToken.substringAfterLast("*")
+                            val saveKonturToken: SharedPreferences.Editor = settings.edit()
+                            saveKonturToken.putString(SAVE_TOKEN, numberKontur)
+                            saveKonturToken.commit()
+
+                            val saveIdent: SharedPreferences.Editor = identSet.edit()
+                            saveIdent.putString(SAVE_TOKEN, editTextIdent.text.toString())
+                            saveIdent.commit()
+
+                            val saveUrlIpPort: SharedPreferences.Editor = urlIpPort.edit()
+                            saveUrlIpPort.putString(
+                                SAVE_TOKEN,
+                                "${editTextIp.text}:${editTextPort.text}"
+                            )
+                            saveUrlIpPort.commit()
+
+                            val saveEndDate: SharedPreferences.Editor = endDate.edit()
+                            saveEndDate.putString(SAVE_TOKEN, dataSourceToken.getToken().endDate)
+                            saveEndDate.commit()
+
+                            val intent = Intent(activity, MainActivity::class.java)
+                            startActivity(intent)
+                            activity?.finish()
+                        } else {
+                            demoFragment = DemoFragment()
+                            openFragment(demoFragment)
+                        }
                     } else {
                         demoFragment = DemoFragment()
                         openFragment(demoFragment)
                     }
                 } else {
-                    demoFragment = DemoFragment()
-                    openFragment(demoFragment)
+                    openFragment(negativeAnswerFragment.newInstance(dataSourceToken.getAnswer()))
                 }
-            } else {
-                openFragment(negativeAnswerFragment.newInstance(dataSourceToken.getAnswer()))
             }
         }
     }

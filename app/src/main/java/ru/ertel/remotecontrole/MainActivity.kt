@@ -50,12 +50,16 @@ class MainActivity : AppCompatActivity() {
         val settingsToken: SharedPreferences = getSharedPreferences("konturToken", MODE_PRIVATE)
         val bodyToken = settingsToken.getString(SAVE_TOKEN, "no").toString()
 
+        val settingsAdmin: SharedPreferences = getSharedPreferences("admin", MODE_PRIVATE)
+        val bodyAdmin = settingsAdmin.getString(SAVE_TOKEN, "no").toString()
+
         val konturController = KonturController()
         val dataSourceLicense = DataSourceLicense()
 
         val onStatus = "Въезд на территорию"
         val noStatus = "Выезд с территории"
         var messagePassageCard = ""
+        var adminMessagePassageCard = ""
         var cpDirection: Int = 1
 
         when (bodyStatus) {
@@ -92,6 +96,54 @@ class MainActivity : AppCompatActivity() {
         }
 
         statusCheck.setOnCheckedChangeListener { buttonView, isChecked ->
+            when (bodyAdmin) {
+                "Режим администратора активирован" -> {
+                    if (isChecked) {
+                        val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
+                        saveStatus.putString(SAVE_TOKEN, noStatus)
+                        saveStatus.commit()
+                        cpDirection = 2
+                        adminMessagePassageCard = adminMessagePassageCard.replace(
+                            "<param name=\"cpDirection\">1</param>",
+                            "<param name=\"cpDirection\">2</param>"
+                        )
+                        statusCheck.text = noStatus
+                    } else {
+                        val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
+                        saveStatus.putString(SAVE_TOKEN, onStatus)
+                        saveStatus.commit()
+                        cpDirection = 1
+                        adminMessagePassageCard = adminMessagePassageCard.replace(
+                            "<param name=\"cpDirection\">2</param>",
+                            "<param name=\"cpDirection\">1</param>"
+                        )
+                        statusCheck.text = onStatus
+                    }
+                }
+                else -> {
+                    if (isChecked) {
+                        val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
+                        saveStatus.putString(SAVE_TOKEN, noStatus)
+                        saveStatus.commit()
+                        cpDirection = 2
+                        messagePassageCard = messagePassageCard.replace(
+                            "<param name=\"cpDirection\">1</param>",
+                            "<param name=\"cpDirection\">2</param>"
+                        )
+                        statusCheck.text = noStatus
+                    } else {
+                        val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
+                        saveStatus.putString(SAVE_TOKEN, onStatus)
+                        saveStatus.commit()
+                        cpDirection = 1
+                        messagePassageCard = messagePassageCard.replace(
+                            "<param name=\"cpDirection\">2</param>",
+                            "<param name=\"cpDirection\">1</param>"
+                        )
+                        statusCheck.text = onStatus
+                    }
+                }
+            }
             if (isChecked) {
                 val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
                 saveStatus.putString(SAVE_TOKEN, noStatus)
@@ -130,6 +182,15 @@ class MainActivity : AppCompatActivity() {
                 "</command> " +
                 "</script>"
 
+        val adminMessageBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
+                "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
+                "<command admin=\"True\" visible=\"False\" wait-answer=\"True\" name=\"cLockDevice\" device=\"$identDevice\" guid=\"95D454F3-8EBD-50E6-A085-4E644468B8D6\"> " +
+                "<param name=\"cpLocker\">Админ</param> " +
+                "<param name=\"cpDuration\">30000</param> " +
+                "<param name=\"cpSession\">85D323F3-8EBD-48E6-A085-4E652468B8D6</param> " +
+                "</command> " +
+                "</script>"
+
         // 1 - Вход, 2 - выход для cpDirection
         messagePassageCard = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
                 "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
@@ -141,7 +202,25 @@ class MainActivity : AppCompatActivity() {
                 "</command> " +
                 "</script>"
 
+        // 1 - Вход, 2 - выход для cpDirection
+        adminMessagePassageCard = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
+                "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
+                "<command admin=\"True\" visible=\"False\" wait-answer=\"True\" name=\"cRequest\" device=\"$identDevice\" guid=\"44871464-8EBD-56E6-A085-4E654768B8D6\"> " +
+                "<param name=\"cpDirection\">$cpDirection</param> " +
+                "<param name=\"cpText\">Админ</param> " +
+                "</command> " +
+                "</script>"
+
         val messageUnBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
+                "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
+                "<command admin=\"True\" visible=\"False\" wait-answer=\"True\" name=\"cUnlockDevice\" device=\"$identDevice\" guid=\"98545167-8EBD-6578-A085-4E633368B8D6\"> " +
+                "<param name=\"cpLocker\">Карта Тройка</param> " +
+                "<param name=\"cpDuration\">30000</param> " +
+                "<param name=\"cpSession\">85D323F3-8EBD-48E6-A085-4E652468B8D6</param> " +
+                "</command> " +
+                "</script>"
+
+        val adminMessageUnBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
                 "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
                 "<command name=\"cUnlockDevice\" device=\"$identDevice\" guid=\"98545167-8EBD-6578-A085-4E633368B8D6\"> " +
                 "<param name=\"cpLocker\">Карта Тройка</param> " +
@@ -155,6 +234,7 @@ class MainActivity : AppCompatActivity() {
                 "<wait delay=\"20000\" device=\"$identDevice\"/> " +
                 "</script>"
 
+
         imageView.setOnClickListener {
             vibroFone()
             imageView.tag = "open"
@@ -166,14 +246,28 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                     finish()
                 } else {
-                    updatePassageCard(
-                        konturController,
-                        urlKontur,
-                        messageBlockDevice,
-                        messagePassageCard,
-                        answerDevice,
-                        messageUnBlockDevice,
-                    )
+                    when (bodyAdmin) {
+                        "Режим администратора активирован" -> {
+                            updatePassageCard(
+                                konturController,
+                                urlKontur,
+                                adminMessageBlockDevice,
+                                adminMessagePassageCard,
+                                answerDevice,
+                                adminMessageUnBlockDevice
+                            )
+                        }
+                        else -> {
+                            updatePassageCard(
+                                konturController,
+                                urlKontur,
+                                messageBlockDevice,
+                                messagePassageCard,
+                                answerDevice,
+                                messageUnBlockDevice,
+                            )
+                        }
+                    }
                     if (status == "Проход разрешён") {
                         Handler().postDelayed(Runnable {
                             imageView.setImageResource(R.drawable.shlakopen)
