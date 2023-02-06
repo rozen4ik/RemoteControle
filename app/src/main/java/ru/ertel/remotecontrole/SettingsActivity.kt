@@ -15,8 +15,8 @@ import ru.ertel.remotecontrole.StartActivity.Companion.SAVE_TOKEN
 import ru.ertel.remotecontrole.controller.KonturController
 import ru.ertel.remotecontrole.data.DataSourceDevice
 import ru.ertel.remotecontrole.data.DataSourceToken
+import java.net.ConnectException
 import java.text.SimpleDateFormat
-import java.util.*
 
 
 class SettingsActivity : AppCompatActivity() {
@@ -36,6 +36,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var buttonSaveIpPort: Button
     private lateinit var dataSourceToken: DataSourceToken
     private lateinit var konturController: KonturController
+    private var statusInternet: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,7 +63,8 @@ class SettingsActivity : AppCompatActivity() {
         val endDate: SharedPreferences = getSharedPreferences("date", MODE_PRIVATE)
         val settingsDate: SharedPreferences = getSharedPreferences("endDate", MODE_PRIVATE)
         val settingsIdent: SharedPreferences = getSharedPreferences("ident", MODE_PRIVATE)
-        val settingsIdentDevice: SharedPreferences = getSharedPreferences("identDevice", MODE_PRIVATE)
+        val settingsIdentDevice: SharedPreferences =
+            getSharedPreferences("identDevice", MODE_PRIVATE)
         val settingsURL: SharedPreferences = getSharedPreferences("url", MODE_PRIVATE)
 
         val bodyDate = endDate.getString(SAVE_TOKEN, "no").toString()
@@ -73,22 +75,10 @@ class SettingsActivity : AppCompatActivity() {
         val konturController = KonturController()
         val dataSourceDevice = DataSourceDevice()
 
-        checkDevice(
-            konturController,
-            dataSourceDevice,
-            "http://$bodyURL/monitor?script=True",
-            "<?xml version=\"1.0\" encoding=\"Windows-1251\"?>\n<script />"
-        )
-
-        for (i in dataSourceDevice.getDeviceArray()) {
-            Log.d("TAG", i)
-        }
-
-        val devices = dataSourceDevice.getDeviceArray().toArray().reversed()
-
         textDateLicense.text = "Лицензия действует до $bodyDate\nОбновить лицензию:"
         textIdent.text = "Идентификатор клиента $bodyIdent\nВвести другой идентификатор клиента:"
-        textIdentDevice.text = "Идентификатор устройства $bodyIdentDevice\nВвести идентификатор устройства:"
+        textIdentDevice.text =
+            "Идентификатор устройства $bodyIdentDevice\nВвести идентификатор устройства:"
         showURL.text = "Используется адрес: http://$bodyURL"
 
         saveLicense.setOnClickListener {
@@ -135,25 +125,31 @@ class SettingsActivity : AppCompatActivity() {
 
             val upIdent: SharedPreferences = getSharedPreferences("ident", MODE_PRIVATE)
             val upBodyIdent = upIdent.getString(SAVE_TOKEN, "no").toString()
-            textIdent.text = "Идентификатор клиента $upBodyIdent\nВвести другой идентификатор клиента:"
+            textIdent.text =
+                "Идентификатор клиента $upBodyIdent\nВвести другой идентификатор клиента:"
         }
 
-        val adapter: ArrayAdapter<Any?> =
-            ArrayAdapter<Any?>(this, android.R.layout.simple_spinner_item, devices)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerSelectDevice.adapter = adapter
+        if (statusInternet != "Нет интернета") {
+            val devices = dataSourceDevice.getDeviceArray().toArray().reversed()
+            val adapter: ArrayAdapter<Any?> =
+                ArrayAdapter<Any?>(this, android.R.layout.simple_spinner_item, devices)
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinnerSelectDevice.adapter = adapter
 
-        saveIdentDevice.setOnClickListener {
-            val device = spinnerSelectDevice.selectedItem.toString().substringBefore(":")
-            val saveIdentDevice: SharedPreferences.Editor = settingsIdentDevice.edit()
-            saveIdentDevice.putString(SAVE_TOKEN, device)
-            saveIdentDevice.commit()
+            saveIdentDevice.setOnClickListener {
+                val device = spinnerSelectDevice.selectedItem.toString().substringBefore(":")
+                val saveIdentDevice: SharedPreferences.Editor = settingsIdentDevice.edit()
+                saveIdentDevice.putString(SAVE_TOKEN, device)
+                saveIdentDevice.commit()
 
-            Log.d("TAG", device)
-
-            val upIdentDevice: SharedPreferences = getSharedPreferences("identDevice", MODE_PRIVATE)
-            val upBodyIdentDevice = upIdentDevice.getString(SAVE_TOKEN, "no").toString()
-            textIdentDevice.text = "Идентификатор устройства $upBodyIdentDevice\nВвести идентификатор устройства:"
+                val upIdentDevice: SharedPreferences =
+                    getSharedPreferences("identDevice", MODE_PRIVATE)
+                val upBodyIdentDevice = upIdentDevice.getString(SAVE_TOKEN, "no").toString()
+                textIdentDevice.text =
+                    "Идентификатор устройства $upBodyIdentDevice\nВвести идентификатор устройства:"
+            }
+        } else {
+            Toast.makeText(this, "Отсутсвует подключение к интернету", Toast.LENGTH_LONG).show()
         }
 
         buttonSaveIpPort.setOnClickListener {
@@ -203,7 +199,8 @@ class SettingsActivity : AppCompatActivity() {
                 try {
                     val answerMessage = konturController.requestPOST(url, message)
                     dataSourceDevice.setDeviceArray(answerMessage)
-                } catch (e: Exception) {
+                } catch (e: ConnectException) {
+                    statusInternet = "Нет интернета"
                     e.printStackTrace()
                 }
             }

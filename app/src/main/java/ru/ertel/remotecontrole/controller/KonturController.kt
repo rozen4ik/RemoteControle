@@ -20,9 +20,13 @@ class KonturController {
             .addHeader("Content-Type", "application/xml; charset=Windows-1251")
             .addHeader("Content-Encoding", "Windows-1251")
             .build()
-        val response = client.newCall(request).execute()
-        val str = response.body?.string()
-        return str.toString()
+        return try {
+            val response = client.newCall(request).execute()
+            val str = response.body?.string()
+            str.toString()
+        } catch (e: Exception) {
+            "Неправильно указан порт и ip"
+        }
     }
 
     fun requestGetToken(url: String): String {

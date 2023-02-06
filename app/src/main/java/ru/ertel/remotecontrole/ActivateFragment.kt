@@ -20,7 +20,9 @@ import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.runBlocking
 import ru.ertel.remotecontrole.StartActivity.Companion.SAVE_TOKEN
 import ru.ertel.remotecontrole.controller.KonturController
+import ru.ertel.remotecontrole.data.DataSourceLicense
 import ru.ertel.remotecontrole.data.DataSourceToken
+import java.net.ConnectException
 
 class ActivateFragment : Fragment() {
     private lateinit var editTextToken: EditText
@@ -35,9 +37,17 @@ class ActivateFragment : Fragment() {
     private lateinit var urlIpPort: SharedPreferences
     private lateinit var urlToken: String
     private lateinit var dataSourceToken: DataSourceToken
+    private lateinit var dataSourceLicense: DataSourceLicense
     private lateinit var konturController: KonturController
     private var negativeAnswerFragment = NegativeAnswerFragment
     private lateinit var demoFragment: DemoFragment
+    private var answerCheckMessage = ""
+    private var statusInternet = ""
+    private val checkMessage = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?>" +
+            "<spd-xml-api>" +
+            "<request version=\"1.1\" ruid=\"739F9F2B-AEDD-4D94-90FF-EB59A9A1FCF5\">" +
+            "</request>" +
+            "</spd-xml-api>"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,6 +55,7 @@ class ActivateFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
         dataSourceToken = DataSourceToken()
+        dataSourceLicense = DataSourceLicense()
         konturController = KonturController()
         return inflater.inflate(R.layout.fragment_activate, container, false)
     }
@@ -59,7 +70,8 @@ class ActivateFragment : Fragment() {
 
         buttonToken.setOnClickListener {
             if (editTextToken.text.toString() == "" || editTextIdent.text.toString() == ""
-                || editTextPort.text.toString() == "" || editTextIp.text.toString() == "") {
+                || editTextPort.text.toString() == "" || editTextIp.text.toString() == ""
+            ) {
                 Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_LONG).show()
             } else {
                 urlToken =
@@ -132,9 +144,33 @@ class ActivateFragment : Fragment() {
                         saveEndDate.putString(SAVE_TOKEN, dataSourceToken.getToken().endDate)
                         saveEndDate.commit()
 
-                        val intent = Intent(activity, MainActivity::class.java)
-                        startActivity(intent)
-                        activity?.finish()
+                        val settingsURL: SharedPreferences = requireActivity().getSharedPreferences(
+                            "url", AppCompatActivity.MODE_PRIVATE
+                        )
+                        val bodyURL = settingsURL.getString(SAVE_TOKEN, "no").toString()
+
+                        val settingsIdent: SharedPreferences = requireActivity().getSharedPreferences("ident",
+                            AppCompatActivity.MODE_PRIVATE
+                        )
+                        val bodyIdent = settingsIdent.getString(SAVE_TOKEN, "no").toString()
+
+                        checkLicense(
+                            konturController,
+                            dataSourceLicense,
+                            "http://$bodyURL/spd-xml-api",
+                            bodyIdent,
+                            checkMessage
+                        )
+
+                        if (statusInternet == "Неправильно указан порт и ip") {
+                            Toast.makeText(requireContext(),
+                                "Неправильно указан порт и ip", Toast.LENGTH_LONG).show()
+                            super.onResume()
+                        } else {
+                            val intent = Intent(activity, MainActivity::class.java)
+                            startActivity(intent)
+                            activity?.finish()
+                        }
                     } else if (dateYearNow == endYear.toInt()) {
                         if ((dateDayOfYearNow < endDayOfYear.toInt()) && (dateYearNow <= endYear.toInt())) {
                             val saveEndDateToken: SharedPreferences.Editor = daySet.edit()
@@ -162,9 +198,33 @@ class ActivateFragment : Fragment() {
                             saveEndDate.putString(SAVE_TOKEN, dataSourceToken.getToken().endDate)
                             saveEndDate.commit()
 
-                            val intent = Intent(activity, MainActivity::class.java)
-                            startActivity(intent)
-                            activity?.finish()
+                            val settingsURL: SharedPreferences = requireActivity().getSharedPreferences(
+                                "url", AppCompatActivity.MODE_PRIVATE
+                            )
+                            val bodyURL = settingsURL.getString(SAVE_TOKEN, "no").toString()
+
+                            val settingsIdent: SharedPreferences = requireActivity().getSharedPreferences("ident",
+                                AppCompatActivity.MODE_PRIVATE
+                            )
+                            val bodyIdent = settingsIdent.getString(SAVE_TOKEN, "no").toString()
+
+                            checkLicense(
+                                konturController,
+                                dataSourceLicense,
+                                "http://$bodyURL/spd-xml-api",
+                                bodyIdent,
+                                checkMessage
+                            )
+
+                            if (statusInternet == "Неправильно указан порт и ip") {
+                                Toast.makeText(requireContext(),
+                                    "Неправильно указан порт и ip", Toast.LENGTH_LONG).show()
+                                super.onResume()
+                            } else {
+                                val intent = Intent(activity, MainActivity::class.java)
+                                startActivity(intent)
+                                activity?.finish()
+                            }
                         } else {
                             demoFragment = DemoFragment()
                             openFragment(demoFragment)
@@ -185,6 +245,30 @@ class ActivateFragment : Fragment() {
             ?.beginTransaction()
             ?.replace(R.id.placeDateFragments, fragment)
             ?.commit()
+    }
+
+    private fun checkLicense(
+        konturController: KonturController,
+        dataSourceLicense: DataSourceLicense,
+        url: String,
+        bodyToken: String,
+        checkMessage: String
+    ) {
+        runBlocking {
+            launch(newSingleThreadContext("CheclLicense")) {
+                try {
+                    answerCheckMessage = konturController.requestPOST(url, checkMessage)
+                    if (answerCheckMessage.contains("<spd-xml-api>")) {
+                        dataSourceLicense.setMessageLicense(answerCheckMessage, bodyToken)
+                    } else {
+                        statusInternet = answerCheckMessage
+                    }
+                } catch (e: ConnectException) {
+                    statusInternet = "Неправильно указан порт и ip"
+                    e.printStackTrace()
+                }
+            }
+        }
     }
 
     private fun infoToken(
