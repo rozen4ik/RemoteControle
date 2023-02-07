@@ -14,14 +14,17 @@ import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.runBlocking
 import ru.ertel.remotecontrole.StartActivity.Companion.SAVE_TOKEN
 import ru.ertel.remotecontrole.controller.KonturController
+import ru.ertel.remotecontrole.data.DataSourceDevice
 import ru.ertel.remotecontrole.data.DataSourceLicense
+import java.net.ConnectException
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var imageView: ImageView
-    private lateinit var statusCheck: CheckBox
+    private lateinit var spinnerSelectDevice: Spinner
     private var status = ""
     private var answerCheckMessage = ""
+    private var statusInternet = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,17 +33,13 @@ class MainActivity : AppCompatActivity() {
         imageView = findViewById(R.id.imageView)
         imageView.setImageResource(R.drawable.shlakclose)
 
-        statusCheck = findViewById(R.id.statusCheck)
+        spinnerSelectDevice = findViewById(R.id.selectDevice)
 
         val settingsStatus: SharedPreferences = getSharedPreferences("status", MODE_PRIVATE)
         val bodyStatus = settingsStatus.getString(SAVE_TOKEN, "no").toString()
 
         val settingsIdent: SharedPreferences = getSharedPreferences("ident", MODE_PRIVATE)
         val identClient = settingsIdent.getString(SAVE_TOKEN, "no").toString()
-
-        val settingsIdentDevice: SharedPreferences =
-            getSharedPreferences("identDevice", MODE_PRIVATE)
-        val identDevice = settingsIdentDevice.getString(SAVE_TOKEN, "no").toString()
 
         val settingsURL: SharedPreferences = getSharedPreferences("url", MODE_PRIVATE)
         val urlKontur =
@@ -55,116 +54,20 @@ class MainActivity : AppCompatActivity() {
 
         val konturController = KonturController()
         val dataSourceLicense = DataSourceLicense()
+        val dataSourceDevice = DataSourceDevice()
 
-        val onStatus = "Въезд на территорию"
-        val noStatus = "Выезд с территории"
-        var messagePassageCard = ""
-        var adminMessagePassageCard = ""
-        var cpDirection: Int = 1
+        val messageDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?>\n" +
+                "<script/>"
 
-        when (bodyStatus) {
-            noStatus -> {
-                statusCheck.isChecked = true
-                statusCheck.text = noStatus
-                cpDirection = 2
-                messagePassageCard = messagePassageCard.replace(
-                    "<param name=\"cpDirection\">1</param>",
-                    "<param name=\"cpDirection\">2</param>"
-                )
-            }
-            "no" -> {
-                statusCheck.isChecked = false
-                statusCheck.text = onStatus
-                cpDirection = 1
-                messagePassageCard = messagePassageCard.replace(
-                    "<param name=\"cpDirection\">2</param>",
-                    "<param name=\"cpDirection\">1</param>"
-                )
-                val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
-                saveStatus.putString(SAVE_TOKEN, onStatus)
-                saveStatus.commit()
-            }
-            else -> {
-                statusCheck.isChecked = false
-                statusCheck.text = onStatus
-                cpDirection = 1
-                messagePassageCard = messagePassageCard.replace(
-                    "<param name=\"cpDirection\">2</param>",
-                    "<param name=\"cpDirection\">1</param>"
-                )
-            }
-        }
+        checkDevice(konturController, dataSourceDevice, urlKontur, messageDevice)
 
-        statusCheck.setOnCheckedChangeListener { buttonView, isChecked ->
-            when (bodyAdmin) {
-                "Режим администратора активирован" -> {
-                    if (isChecked) {
-                        val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
-                        saveStatus.putString(SAVE_TOKEN, noStatus)
-                        saveStatus.commit()
-                        cpDirection = 2
-                        adminMessagePassageCard = adminMessagePassageCard.replace(
-                            "<param name=\"cpDirection\">1</param>",
-                            "<param name=\"cpDirection\">2</param>"
-                        )
-                        statusCheck.text = noStatus
-                    } else {
-                        val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
-                        saveStatus.putString(SAVE_TOKEN, onStatus)
-                        saveStatus.commit()
-                        cpDirection = 1
-                        adminMessagePassageCard = adminMessagePassageCard.replace(
-                            "<param name=\"cpDirection\">2</param>",
-                            "<param name=\"cpDirection\">1</param>"
-                        )
-                        statusCheck.text = onStatus
-                    }
-                }
-                else -> {
-                    if (isChecked) {
-                        val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
-                        saveStatus.putString(SAVE_TOKEN, noStatus)
-                        saveStatus.commit()
-                        cpDirection = 2
-                        messagePassageCard = messagePassageCard.replace(
-                            "<param name=\"cpDirection\">1</param>",
-                            "<param name=\"cpDirection\">2</param>"
-                        )
-                        statusCheck.text = noStatus
-                    } else {
-                        val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
-                        saveStatus.putString(SAVE_TOKEN, onStatus)
-                        saveStatus.commit()
-                        cpDirection = 1
-                        messagePassageCard = messagePassageCard.replace(
-                            "<param name=\"cpDirection\">2</param>",
-                            "<param name=\"cpDirection\">1</param>"
-                        )
-                        statusCheck.text = onStatus
-                    }
-                }
-            }
-            if (isChecked) {
-                val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
-                saveStatus.putString(SAVE_TOKEN, noStatus)
-                saveStatus.commit()
-                cpDirection = 2
-                messagePassageCard = messagePassageCard.replace(
-                    "<param name=\"cpDirection\">1</param>",
-                    "<param name=\"cpDirection\">2</param>"
-                )
-                statusCheck.text = noStatus
-            } else {
-                val saveStatus: SharedPreferences.Editor = settingsStatus.edit()
-                saveStatus.putString(SAVE_TOKEN, onStatus)
-                saveStatus.commit()
-                cpDirection = 1
-                messagePassageCard = messagePassageCard.replace(
-                    "<param name=\"cpDirection\">2</param>",
-                    "<param name=\"cpDirection\">1</param>"
-                )
-                statusCheck.text = onStatus
-            }
+        if (statusInternet == "Неправильно указан порт и ip") {
+
+            Toast.makeText(this, "Неправильно указан порт и ip", Toast.LENGTH_LONG).show()
+
+            val intent = Intent(this@MainActivity, SettingsActivity::class.java)
+            startActivity(intent)
+            finish()
         }
 
         val checkMessage = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?>" +
@@ -173,67 +76,72 @@ class MainActivity : AppCompatActivity() {
                 "</request>" +
                 "</spd-xml-api>"
 
-        val messageBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
+        var messageBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
                 "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
-                "<command name=\"cLockDevice\" device=\"$identDevice\" guid=\"95D454F3-8EBD-50E6-A085-4E644468B8D6\"> " +
+                "<command name=\"cLockDevice\" device= guid=\"95D454F3-8EBD-50E6-A085-4E644468B8D6\"> " +
                 "<param name=\"cpLocker\">Карта Тройка</param> " +
                 "<param name=\"cpDuration\">30000</param> " +
                 "<param name=\"cpSession\">85D323F3-8EBD-48E6-A085-4E652468B8D6</param> " +
                 "</command> " +
                 "</script>"
 
-        val adminMessageBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
-                "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
-                "<command admin=\"True\" visible=\"True\" wait-answer=\"True\" name=\"cLockDevice\" device=\"$identDevice\" guid=\"95D454F3-8EBD-50E6-A085-4E644468B8D6\"> " +
-                "<param name=\"cpLocker\">Админ</param> " +
-                "<param name=\"cpDuration\">30000</param> " +
-                "<param name=\"cpSession\">85D323F3-8EBD-48E6-A085-4E652468B8D6</param> " +
-                "</command> " +
-                "</script>"
+//        var adminMessageBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
+//                "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
+//                "<command admin=\"True\" visible=\"True\" wait-answer=\"True\" name=\"cLockDevice\" device= guid=\"95D454F3-8EBD-50E6-A085-4E644468B8D6\"> " +
+//                "<param name=\"cpLocker\">Админ</param> " +
+//                "<param name=\"cpDuration\">30000</param> " +
+//                "<param name=\"cpSession\">85D323F3-8EBD-48E6-A085-4E652468B8D6</param> " +
+//                "</command> " +
+//                "</script>"
 
         // 1 - Вход, 2 - выход для cpDirection
-        messagePassageCard = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
+        var messagePassageCard = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
                 "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
-                "<command name=\"cRequest\" device=\"$identDevice\" guid=\"44871464-8EBD-56E6-A085-4E654768B8D6\"> " +
+                "<command name=\"cRequest\" device= guid=\"44871464-8EBD-56E6-A085-4E654768B8D6\"> " +
                 "<param name=\"cpCard\">$identClient</param> " +
                 "<param name=\"cpCardType\">1</param> " +
-                "<param name=\"cpDirection\">$cpDirection</param> " +
+                "<param name=\"cpDirection\">1</param> " +
                 "<param name=\"cpText\">Запрос по карте</param> " +
                 "</command> " +
                 "</script>"
 
-        // 1 - Вход, 2 - выход для cpDirection
-        adminMessagePassageCard = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
-                "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
-                "<command admin=\"True\" visible=\"True\" wait-answer=\"True\" name=\"cRequest\" device=\"$identDevice\" guid=\"44871464-8EBD-56E6-A085-4E654768B8D6\"> " +
-                "<param name=\"cpDirection\">$cpDirection</param> " +
-                "<param name=\"cpText\">Админ</param> " +
-                "</command> " +
-                "</script>"
+//        // 1 - Вход, 2 - выход для cpDirection
+//        var adminMessagePassageCard = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
+//                "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
+//                "<command admin=\"True\" visible=\"True\" wait-answer=\"True\" name=\"cRequest\" device= guid=\"44871464-8EBD-56E6-A085-4E654768B8D6\"> " +
+//                "<param name=\"cpDirection\">1</param> " +
+//                "<param name=\"cpText\">Админ</param> " +
+//                "</command> " +
+//                "</script>"
 
-        val messageUnBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
+        var messageUnBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
                 "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
-                "<command name=\"cUnlockDevice\" device=\"$identDevice\" guid=\"98545167-8EBD-6578-A085-4E633368B8D6\"> " +
+                "<command name=\"cUnlockDevice\" device= guid=\"98545167-8EBD-6578-A085-4E633368B8D6\"> " +
                 "<param name=\"cpLocker\">Карта Тройка</param> " +
                 "<param name=\"cpDuration\">30000</param> " +
                 "<param name=\"cpSession\">85D323F3-8EBD-48E6-A085-4E652468B8D6</param> " +
                 "</command> " +
                 "</script>"
 
-        val adminMessageUnBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
+//        var adminMessageUnBlockDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
+//                "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
+//                "<command admin=\"True\" visible=\"True\" wait-answer=\"True\" name=\"cUnlockDevice\" device= guid=\"98545167-8EBD-6578-A085-4E633368B8D6\"> " +
+//                "<param name=\"cpLocker\">Админ</param> " +
+//                "<param name=\"cpDuration\">30000</param> " +
+//                "<param name=\"cpSession\">85D323F3-8EBD-48E6-A085-4E652468B8D6</param> " +
+//                "</command> " +
+//                "</script>"
+
+        var answerDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
                 "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
-                "<command admin=\"True\" visible=\"True\" wait-answer=\"True\" name=\"cUnlockDevice\" device=\"$identDevice\" guid=\"98545167-8EBD-6578-A085-4E633368B8D6\"> " +
-                "<param name=\"cpLocker\">Админ</param> " +
-                "<param name=\"cpDuration\">30000</param> " +
-                "<param name=\"cpSession\">85D323F3-8EBD-48E6-A085-4E652468B8D6</param> " +
-                "</command> " +
+                "<wait delay=\"20000\" device= /> " +
                 "</script>"
 
-        val answerDevice = "<?xml version=\"1.0\" encoding=\"Windows-1251\"?> " +
-                "<script session=\"85D323F3-8EBD-48E6-A085-4E652468B8D6\"> " +
-                "<wait delay=\"20000\" device=\"$identDevice\"/> " +
-                "</script>"
-
+        val devices = dataSourceDevice.getDeviceArray().toArray().reversed()
+        val adapter: ArrayAdapter<Any?> =
+            ArrayAdapter<Any?>(this, android.R.layout.simple_spinner_item, devices)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerSelectDevice.adapter = adapter
 
         imageView.setOnClickListener {
             vibroFone()
@@ -246,46 +154,46 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                     finish()
                 } else {
-                    when (bodyAdmin) {
-                        "Режим администратора активирован" -> {
-                            updatePassageCard(
-                                konturController,
-                                urlKontur,
-                                adminMessageBlockDevice,
-                                adminMessagePassageCard,
-                                answerDevice,
-                                adminMessageUnBlockDevice
-                            )
-                        }
-                        else -> {
-                            updatePassageCard(
-                                konturController,
-                                urlKontur,
-                                messageBlockDevice,
-                                messagePassageCard,
-                                answerDevice,
-                                messageUnBlockDevice,
-                            )
-                        }
-                    }
-                    if (status == "Проход разрешён") {
-                        Handler().postDelayed(Runnable {
-                            imageView.setImageResource(R.drawable.shlakopen)
-                            Toast.makeText(this, status, Toast.LENGTH_LONG).show()
-                            imageView.tag = "close"
-                            Handler().postDelayed(Runnable {
-                                imageView.setImageResource(R.drawable.shlakclose)
-                            }, 1500)
+                    val device =
+                        spinnerSelectDevice.selectedItem.toString().substringBefore(":")
 
-                        }, 600)
-                    } else {
+                    messageBlockDevice = messageBlockDevice.replace("device=", "device=\"$device\"")
+                    messagePassageCard = messagePassageCard.replace("device=", "device=\"$device\"")
+                    answerDevice = answerDevice.replace("device=", "device=\"$device\"")
+                    messageUnBlockDevice = messageUnBlockDevice.replace("device=", "device=\"$device\"")
+
+                    updatePassageCard(
+                        konturController,
+                        urlKontur,
+                        messageBlockDevice,
+                        messagePassageCard,
+                        answerDevice,
+                        messageUnBlockDevice,
+                    )
+
+                    messageBlockDevice = messageBlockDevice.replace("device=\"$device\"", "device=")
+                    messagePassageCard = messagePassageCard.replace("device=\"$device\"", "device=")
+                    answerDevice = answerDevice.replace("device=\"$device\"", "device=")
+                    messageUnBlockDevice = messageUnBlockDevice.replace("device=\"$device\"", "device=")
+                }
+                if (status == "Проход разрешён") {
+                    Handler().postDelayed(Runnable {
+                        imageView.setImageResource(R.drawable.shlakopen)
                         Toast.makeText(this, status, Toast.LENGTH_LONG).show()
                         imageView.tag = "close"
                         Handler().postDelayed(Runnable {
                             imageView.setImageResource(R.drawable.shlakclose)
-                        }, 300)
-                    }
+                        }, 1500)
+
+                    }, 600)
+                } else {
+                    Toast.makeText(this, status, Toast.LENGTH_LONG).show()
+                    imageView.tag = "close"
+                    Handler().postDelayed(Runnable {
+                        imageView.setImageResource(R.drawable.shlakclose)
+                    }, 300)
                 }
+
             }, 300)
         }
     }
@@ -333,20 +241,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateMsgPassageCard(msg: String): String {
-        var message = msg
-        message = if (message.contains("<param name=\"cpDirection\">1</param>")) {
-            message.replace(
-                "<param name=\"cpDirection\">1</param>",
-                "<param name=\"cpDirection\">2</param>"
-            )
-        } else {
-            message.replace(
-                "<param name=\"cpDirection\">2</param>",
-                "<param name=\"cpDirection\">1</param>"
-            )
+    private fun checkDevice(
+        konturController: KonturController,
+        dataSourceDevice: DataSourceDevice,
+        url: String,
+        message: String
+    ) {
+        runBlocking {
+            launch(newSingleThreadContext("CheclLicense")) {
+                try {
+                    val answerMessage = konturController.requestPOST(url, message)
+                    if (answerMessage.contains("<answer>")) {
+                        dataSourceDevice.setDeviceArray(answerMessage)
+                    } else {
+                        statusInternet = answerMessage
+                    }
+                } catch (e: ConnectException) {
+                    e.printStackTrace()
+                }
+            }
         }
-        return message
     }
 
     private fun checkLicense(

@@ -49,28 +49,6 @@
             android:id="@+id/saveIdentClient"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="25dp"
-            android:text="Сохранить" />
-
-        <TextView
-            android:id="@+id/textIdentDevice"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Ввести идентификатор устройства:"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
-
-        <Spinner
-            android:id="@+id/selectDevice"
-            android:layout_marginTop="5dp"
-            android:spinnerMode="dialog"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <Button
-            android:id="@+id/saveIdentDevice"
-            android:layout_marginTop="10dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:text="Сохранить" />
 
         <TextView
