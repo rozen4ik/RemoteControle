@@ -1,8 +1,8 @@
 package ru.ertel.remotecontrole.data
 
 class DataSourceDevice {
-    private lateinit var devices: ArrayList<String>
-    private lateinit var deviceArray: ArrayList<String>
+    private var devices = ArrayList<String>()
+    private var deviceArray = ArrayList<String>()
     private var strDevice: String = ""
 
     fun setDeviceArray(message: String) {

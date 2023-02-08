@@ -3,18 +3,15 @@ package ru.ertel.remotecontrole
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Toast
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.util.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.runBlocking
@@ -23,6 +20,9 @@ import ru.ertel.remotecontrole.controller.KonturController
 import ru.ertel.remotecontrole.data.DataSourceLicense
 import ru.ertel.remotecontrole.data.DataSourceToken
 import java.net.ConnectException
+import java.text.SimpleDateFormat
+import java.util.*
+
 
 class ActivateFragment : Fragment() {
     private lateinit var editTextToken: EditText
@@ -69,6 +69,11 @@ class ActivateFragment : Fragment() {
         buttonToken = view.findViewById(R.id.buttonToken)
 
         buttonToken.setOnClickListener {
+
+            activity?.runOnUiThread {
+                Toast.makeText(requireContext(), "Проверяется лицензия приложения", Toast.LENGTH_LONG).show()
+            }
+
             if (editTextToken.text.toString() == "" || editTextIdent.text.toString() == ""
                 || editTextPort.text.toString() == "" || editTextIp.text.toString() == ""
             ) {
@@ -149,10 +154,16 @@ class ActivateFragment : Fragment() {
                         )
                         val bodyURL = settingsURL.getString(SAVE_TOKEN, "no").toString()
 
-                        val settingsIdent: SharedPreferences = requireActivity().getSharedPreferences("ident",
-                            AppCompatActivity.MODE_PRIVATE
-                        )
+                        val settingsIdent: SharedPreferences =
+                            requireActivity().getSharedPreferences(
+                                "ident",
+                                AppCompatActivity.MODE_PRIVATE
+                            )
                         val bodyIdent = settingsIdent.getString(SAVE_TOKEN, "no").toString()
+
+                        activity?.runOnUiThread {
+                            Toast.makeText(requireContext(), "Проверяется соединение с сервером", Toast.LENGTH_LONG).show()
+                        }
 
                         checkLicense(
                             konturController,
@@ -163,9 +174,13 @@ class ActivateFragment : Fragment() {
                         )
 
                         if (statusInternet == "Неправильно указан порт и ip") {
-                            Toast.makeText(requireContext(),
-                                "Неправильно указан порт и ip", Toast.LENGTH_LONG).show()
-                            super.onResume()
+                            Toast.makeText(
+                                requireContext(),
+                                "Неправильно указан порт и ip",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            val intent = Intent(activity, SettingsActivity::class.java)
+                            startActivity(intent)
                         } else {
                             val intent = Intent(activity, MainActivity::class.java)
                             startActivity(intent)
@@ -198,15 +213,22 @@ class ActivateFragment : Fragment() {
                             saveEndDate.putString(SAVE_TOKEN, dataSourceToken.getToken().endDate)
                             saveEndDate.commit()
 
-                            val settingsURL: SharedPreferences = requireActivity().getSharedPreferences(
-                                "url", AppCompatActivity.MODE_PRIVATE
-                            )
+                            val settingsURL: SharedPreferences =
+                                requireActivity().getSharedPreferences(
+                                    "url", AppCompatActivity.MODE_PRIVATE
+                                )
                             val bodyURL = settingsURL.getString(SAVE_TOKEN, "no").toString()
 
-                            val settingsIdent: SharedPreferences = requireActivity().getSharedPreferences("ident",
-                                AppCompatActivity.MODE_PRIVATE
-                            )
+                            val settingsIdent: SharedPreferences =
+                                requireActivity().getSharedPreferences(
+                                    "ident",
+                                    AppCompatActivity.MODE_PRIVATE
+                                )
                             val bodyIdent = settingsIdent.getString(SAVE_TOKEN, "no").toString()
+
+                            activity?.runOnUiThread {
+                                Toast.makeText(requireContext(), "Проверяется соединение с сервером", Toast.LENGTH_LONG).show()
+                            }
 
                             checkLicense(
                                 konturController,
@@ -217,9 +239,13 @@ class ActivateFragment : Fragment() {
                             )
 
                             if (statusInternet == "Неправильно указан порт и ip") {
-                                Toast.makeText(requireContext(),
-                                    "Неправильно указан порт и ip", Toast.LENGTH_LONG).show()
-                                super.onResume()
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Неправильно указан порт и ip",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                val intent = Intent(activity, SettingsActivity::class.java)
+                                startActivity(intent)
                             } else {
                                 val intent = Intent(activity, MainActivity::class.java)
                                 startActivity(intent)

@@ -138,8 +138,19 @@ class MainActivity : AppCompatActivity() {
                 "</script>"
 
         val devices = dataSourceDevice.getDeviceArray().toArray().reversed()
+        var strDevicesSpin = ""
+
+        for (d in devices) {
+            strDevicesSpin += "${d.toString().substringAfter(":")},"
+        }
+
+        strDevicesSpin = strDevicesSpin.substringBeforeLast(",")
+
+        val devicesSpinArrayList = strDevicesSpin.split(",").toList() as ArrayList<String>
+        val devicesSpin = devicesSpinArrayList.toArray()
+
         val adapter: ArrayAdapter<Any?> =
-            ArrayAdapter<Any?>(this, android.R.layout.simple_spinner_item, devices)
+            ArrayAdapter<Any?>(this, android.R.layout.simple_spinner_item, devicesSpin)
 //        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         adapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line)
         spinnerSelectDevice.adapter = adapter
@@ -155,27 +166,32 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                     finish()
                 } else {
-                    val device =
-                        spinnerSelectDevice.selectedItem.toString().substringBefore(":")
+                    var device = spinnerSelectDevice.selectedItem.toString()
 
-                    messageBlockDevice = messageBlockDevice.replace("device=", "device=\"$device\"")
-                    messagePassageCard = messagePassageCard.replace("device=", "device=\"$device\"")
-                    answerDevice = answerDevice.replace("device=", "device=\"$device\"")
-                    messageUnBlockDevice = messageUnBlockDevice.replace("device=", "device=\"$device\"")
+                    for (d in devices) {
+                        if (device == d.toString().substringAfter(":")) {
+                            device = d.toString().substringBefore(":")
 
-                    updatePassageCard(
-                        konturController,
-                        urlKontur,
-                        messageBlockDevice,
-                        messagePassageCard,
-                        answerDevice,
-                        messageUnBlockDevice,
-                    )
+                            messageBlockDevice = messageBlockDevice.replace("device=", "device=\"$device\"")
+                            messagePassageCard = messagePassageCard.replace("device=", "device=\"$device\"")
+                            answerDevice = answerDevice.replace("device=", "device=\"$device\"")
+                            messageUnBlockDevice = messageUnBlockDevice.replace("device=", "device=\"$device\"")
 
-                    messageBlockDevice = messageBlockDevice.replace("device=\"$device\"", "device=")
-                    messagePassageCard = messagePassageCard.replace("device=\"$device\"", "device=")
-                    answerDevice = answerDevice.replace("device=\"$device\"", "device=")
-                    messageUnBlockDevice = messageUnBlockDevice.replace("device=\"$device\"", "device=")
+                            updatePassageCard(
+                                konturController,
+                                urlKontur,
+                                messageBlockDevice,
+                                messagePassageCard,
+                                answerDevice,
+                                messageUnBlockDevice,
+                            )
+
+                            messageBlockDevice = messageBlockDevice.replace("device=\"$device\"", "device=")
+                            messagePassageCard = messagePassageCard.replace("device=\"$device\"", "device=")
+                            answerDevice = answerDevice.replace("device=\"$device\"", "device=")
+                            messageUnBlockDevice = messageUnBlockDevice.replace("device=\"$device\"", "device=")
+                        }
+                    }
                 }
                 if (status == "Проход разрешён") {
                     Handler().postDelayed(Runnable {
