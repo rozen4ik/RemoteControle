@@ -140,7 +140,8 @@ class MainActivity : AppCompatActivity() {
         val devices = dataSourceDevice.getDeviceArray().toArray().reversed()
         val adapter: ArrayAdapter<Any?> =
             ArrayAdapter<Any?>(this, android.R.layout.simple_spinner_item, devices)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        adapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line)
         spinnerSelectDevice.adapter = adapter
 
         imageView.setOnClickListener {

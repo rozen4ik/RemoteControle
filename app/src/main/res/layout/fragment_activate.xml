@@ -86,7 +86,8 @@
         android:layout_marginTop="8dp"
         android:ems="10"
         android:hint="213.208.176.194"
-        android:inputType="textPersonName"
+        android:inputType="number|text"
+        android:singleLine="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView5" />
 
@@ -98,7 +99,8 @@
         android:layout_marginEnd="8dp"
         android:ems="10"
         android:hint="55577"
-        android:inputType="textPersonName"
+        android:inputType="number|text"
+        android:singleLine="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView5" />
 

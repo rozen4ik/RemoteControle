@@ -22,6 +22,7 @@
 
         <EditText
             android:id="@+id/editLicense"
+            android:singleLine="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
@@ -42,6 +43,7 @@
 
         <EditText
             android:id="@+id/editIdentClient"
+            android:singleLine="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
@@ -70,6 +72,8 @@
             android:id="@+id/editURLBody"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="number|text"
+            android:singleLine="true"
             android:hint="213.208.176.194" />
 
         <TextView
@@ -83,6 +87,8 @@
             android:id="@+id/editURLPort"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="number|text"
+            android:singleLine="true"
             android:hint="55577"
             android:paddingBottom="15dp" />
 
