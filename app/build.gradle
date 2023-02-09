@@ -33,6 +33,7 @@ android {
 }
 
 dependencies {
+    implementation 'com.intuit.sdp:sdp-android:1.1.0'
     implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.10.0'
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.appcompat:appcompat:1.5.1'

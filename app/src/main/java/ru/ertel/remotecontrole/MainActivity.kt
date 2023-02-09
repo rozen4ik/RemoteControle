@@ -147,12 +147,9 @@ class MainActivity : AppCompatActivity() {
         strDevicesSpin = strDevicesSpin.substringBeforeLast(",")
 
         val devicesSpinArrayList = strDevicesSpin.split(",").toList() as ArrayList<String>
-        val devicesSpin = devicesSpinArrayList.toArray()
+        val devicesSpin = devicesSpinArrayList.toList()
 
-        val adapter: ArrayAdapter<Any?> =
-            ArrayAdapter<Any?>(this, android.R.layout.simple_spinner_item, devicesSpin)
-//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        adapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line)
+        val adapter = DeviceAdapter(this, devicesSpin)
         spinnerSelectDevice.adapter = adapter
 
         imageView.setOnClickListener {
@@ -168,8 +165,12 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     var device = spinnerSelectDevice.selectedItem.toString()
 
+                    var count = 0
+
+                    Log.d("TAG", device)
+
                     for (d in devices) {
-                        if (device == d.toString().substringAfter(":")) {
+                        if (device.toInt() == count) {
                             device = d.toString().substringBefore(":")
 
                             messageBlockDevice = messageBlockDevice.replace("device=", "device=\"$device\"")
@@ -191,6 +192,7 @@ class MainActivity : AppCompatActivity() {
                             answerDevice = answerDevice.replace("device=\"$device\"", "device=")
                             messageUnBlockDevice = messageUnBlockDevice.replace("device=\"$device\"", "device=")
                         }
+                        count++
                     }
                 }
                 if (status == "Проход разрешён") {
