@@ -1,6 +1,5 @@
 package ru.ertel.remotecontrole.data
 
-import android.util.Log
 import ru.ertel.remotecontrole.model.Token
 
 class DataSourceToken {
@@ -28,15 +27,6 @@ class DataSourceToken {
         token.numberOfActivatedDevices = getNumberOfActivatedDevices(message)
         token.numberOfActivations = getNumberOfActivations(message)
         token.notes = getNotes(message)
-        Log.d("TAG", token.id)
-        Log.d("TAG", token.nameToken)
-        Log.d("TAG", token.startDate)
-        Log.d("TAG", token.counterparty)
-        Log.d("TAG", token.endDate)
-        Log.d("TAG", token.techSupport)
-        Log.d("TAG", token.numberOfActivatedDevices)
-        Log.d("TAG", token.numberOfActivations)
-        Log.d("TAG", token.notes)
     }
 
     fun setAnswer(message: String) {
